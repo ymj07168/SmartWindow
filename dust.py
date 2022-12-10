@@ -1,11 +1,8 @@
 import time
 import board
 import busio
-# import adafruit_ads1x15.ads1115 as ADS
-# from adafruit_ads1x15.analog_in import AnalogIn
-
-import Adafruit_ADS1x15.ADS1x15 as ADS
-from Adafruit_ADS1x15.analog_in import AnalogIn
+import adafruit_ads1x15.ads1115 as ADS
+from adafruit_ads1x15.analog_in import AnalogIn
 
 import RPi.GPIO as GPIO
 
@@ -26,12 +23,12 @@ chan3 = AnalogIn(ads, ADS.P3)
 
 while True:
     GPIO.output(LED_Pin, False)
-    time.sleep(0.000280)
+    # time.sleep(0.000280)
     dustVal=chan0.value
-    time.sleep(0.000040)
+    # time.sleep(0.000040)
     GPIO.output(LED_Pin,True)
-    time.sleep(0.009680)
-    time.sleep(1)
+    # time.sleep(0.009680)
+    # time.sleep(1)
 
     if (dustVal>36.455):
         print(((dustVal/1024)-0.0356)*120000*0.035)
