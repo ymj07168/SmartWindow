@@ -77,12 +77,12 @@ def lcd_string(message, line):
         lcd_byte(ord(message[i]), LCD_CHR)
 
 
-if __name__ == '__main__':
-    lcd_init()
-
-    while True:
-        # Send some test
-        lcd_string("Hello      ", LCD_LINE_1)
-        lcd_string("      World", LCD_LINE_2)
-
-        time.sleep(3)
+# if __name__ == '__main__':
+#     lcd_init()
+#
+#     while True:
+#         # Send some test
+#         lcd_string("Hello      ", LCD_LINE_1)
+#         lcd_string("      World", LCD_LINE_2)
+#
+#         time.sleep(3)
