@@ -3,6 +3,7 @@ import RPi.GPIO as GPIO
 import LCD
 from gpiozero import InputDevice
 import time
+import DCmotor
 
 # 먼지센서 모듈
 import board
@@ -45,23 +46,55 @@ def dust():
     dustVal=chan0.value
     GPIO.output(LED_Pin,True)
 
-    if (dustVal>36.455):
-        dust_value = ((dustVal/1024)-0.0356)*120000*0.035
-        LCD.lcd_string(str(dust_value), LCD_LINE_2)
+    # if (dustVal>36.455):
+    dust_value = ((dustVal/1024)-0.0356)*120000*0.035
+    # print("LCD print" + dust_value)
+    # LCD.lcd_string(str(dust_value), LCD_LINE_2)
+
+    return dust_value
+
 
 
 
 if __name__ == "__main__":
     no_rain = InputDevice(26)
     result = ""
+    dust_value = ""
+    DCmotor.init()
+    is_open = 0 # 닫힌 상태
+    print("닫혀있음")
 
     while True:
-        if not no_rain.is_active:
-            result = "rain"
-        else:
-            result = "no_rain"
+        dust_value = dust()
+        if is_open == 0:                # 창문 닫혀 있는 상태
+            if not no_rain.is_active:   # 비가 온 상태
+                result = "rain"
+            else:
+                result = "no_rain"      # 비가 오지 않은 상태
+                if dust() > 300:     # 미세먼지 많을 때
+                    DCmotor.reverse(3)  # 창문이 열린다
+                    is_open = 1
 
-        lcd(result)
-        dust()
+
+        elif is_open == 1:              # 창문 열려 있는 상태
+            if not no_rain.is_active:   # 비가 온 상태
+                result = "rain"
+                DCmotor.forward(3)      # 창문이 닫힌다.
+                is_open = 0
+            else:
+                result = "no_rain"      # 비가 오지 않은 상태
+                if dust() <= 300:    # 미세먼지 적을 때
+                    DCmotor.forward(3)  # 창문이 닫힌다.
+                    is_open = 0
+
+
+        lcd(result)                                 # 빗물감지센서 측정값 출력
+        print("LCD print" + str(dust_value))
+        LCD.lcd_string(str(dust_value), LCD_LINE_2) # 먼지센서 측정값 출력
+
+        if is_open == 0:
+            print("닫혔음")
+        else:
+            print("열렸음")
         time.sleep(1)
         # lcd = Thread(target=lcd, args=(1, result,))
