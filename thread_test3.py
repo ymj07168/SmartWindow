@@ -29,7 +29,7 @@ chan1 = AnalogIn(ads, ADS.P1)
 chan2 = AnalogIn(ads, ADS.P2)
 chan3 = AnalogIn(ads, ADS.P3)
 
-def lcd(id, res):
+def lcd(res):
     if res == "rain":
         print("LCD print : rain")
         LCD.lcd_string("Raining", LCD_LINE_1)
@@ -40,7 +40,7 @@ def lcd(id, res):
         # LCD.lcd_string("", LCD_LINE_2)
 
 
-def dust(id):
+def dust():
     GPIO.output(LED_Pin, False)
     dustVal=chan0.value
     GPIO.output(LED_Pin,True)
@@ -61,7 +61,7 @@ if __name__ == "__main__":
         else:
             result = "no_rain"
 
-        lcd(1, result)
-        dust(2)
+        lcd(result)
+        dust()
         time.sleep(1)
         # lcd = Thread(target=lcd, args=(1, result,))
