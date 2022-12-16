@@ -36,10 +36,13 @@ from google.cloud import speech
 import pyaudio
 from six.moves import queue
 
+import DCmotor
+
 # Audio recording parameters
 RATE = 16000
 CHUNK = int(RATE / 10)  # 100ms
 
+is_open = 0
 
 class MicrophoneStream(object):
     """Opens a recording stream as a generator yielding the audio chunks."""
@@ -125,6 +128,7 @@ def listen_print_loop(responses):
     final one, print a newline to preserve the finalized transcription.
     """
     num_chars_printed = 0
+    is_open = 0
     for response in responses:
         if not response.results:
             continue
@@ -154,10 +158,22 @@ def listen_print_loop(responses):
 
         else:
             print(transcript + overwrite_chars)
-            if "안녕" in transcript:
-                print("ㅎㅎㅎㅎㅎㅎ")
+            if "닫아" in transcript:
+                if is_open == 1:      # 열려 있는 상태
+                    DCmotor.init()
+                    DCmotor.forward(1)
+                    is_open = 0
+                    print("닫혔음")
 
 
+            if "열어" in transcript:
+                if is_open == 0:        # 닫혀 있는 상태
+                    DCmotor.init()
+                    DCmotor.reverse(1)
+                    is_open = 1
+                    print("열렸음")
+
+            print("창문 상태: " + str(is_open))
             # Exit recognition if any of the transcribed phrases could be
             # one of our keywords.
             if re.search(r"\b(exit|quit)\b", transcript, re.I):
