@@ -28,7 +28,8 @@ while True:
     # time.sleep(0.000040)
     GPIO.output(LED_Pin,True)
     # time.sleep(0.009680)
-    # time.sleep(1)
+    time.sleep(1)
 
+    print(dustVal)
     if (dustVal>36.455):
         print(((dustVal/1024)-0.0356)*120000*0.035)
