@@ -11,7 +11,7 @@ import busio
 import adafruit_ads1x15.ads1115 as ADS
 from adafruit_ads1x15.analog_in import AnalogIn
 
-import transcribe_streaming_mic
+
 
 
 LCD_LINE_1 = 0x80  # LCD RAM address for the 1st line
@@ -58,49 +58,52 @@ def dust():
 
 
 def sensor_loop():
+    global is_open
+    global is_test
     print("센서 루프 시작")
+    print(is_test)
     no_rain = InputDevice(26)
     result = ""
     dust_value = ""
     DCmotor.init()
-    is_open = 0 # 닫힌 상태
+    # is_open = 0             # 닫힌 상태
     print("닫혀있음")
 
 
     print("센서 켜짐")
 
-    if "자동" in order:
-        while True:
-            dust_value = dust()
-            if is_open == 0:                # 창문 닫혀 있는 상태
-                if not no_rain.is_active:   # 비가 온 상태
-                    result = "rain"
-                else:
-                    result = "no_rain"      # 비가 오지 않은 상태
-                    if dust() > 300:     # 미세먼지 많을 때
-                        DCmotor.reverse(3)  # 창문이 열린다
-                        is_open = 1
-
-
-            elif is_open == 1:              # 창문 열려 있는 상태
-                if not no_rain.is_active:   # 비가 온 상태
-                    result = "rain"
-                    DCmotor.forward(3)      # 창문이 닫힌다.
-                    is_open = 0
-                else:
-                    result = "no_rain"      # 비가 오지 않은 상태
-                    if dust() <= 300:    # 미세먼지 적을 때
-                        DCmotor.forward(3)  # 창문이 닫힌다.
-                        is_open = 0
-
-
-            lcd(result)                                 # 빗물감지센서 측정값 출력
-            print("LCD print" + str(dust_value))
-            LCD.lcd_string(str(dust_value), LCD_LINE_2) # 먼지센서 측정값 출력
-
-            if is_open == 0:
-                print("닫혔음")
+    # if "자동" in order:
+    while True:
+        dust_value = dust()
+        if is_open == 0:                # 창문 닫혀 있는 상태
+            if not no_rain.is_active:   # 비가 온 상태
+                result = "rain"
             else:
-                print("열렸음")
-            time.sleep(1)
-            # lcd = Thread(target=lcd, args=(1, result,))
+                result = "no_rain"      # 비가 오지 않은 상태
+                if dust() > 300:     # 미세먼지 많을 때
+                    DCmotor.reverse(3)  # 창문이 열린다
+                    is_open = 1
+
+
+        elif is_open == 1:              # 창문 열려 있는 상태
+            if not no_rain.is_active:   # 비가 온 상태
+                result = "rain"
+                DCmotor.forward(3)      # 창문이 닫힌다.
+                is_open = 0
+            else:
+                result = "no_rain"      # 비가 오지 않은 상태
+                if dust() <= 300:    # 미세먼지 적을 때
+                    DCmotor.forward(3)  # 창문이 닫힌다.
+                    is_open = 0
+
+
+        lcd(result)                                 # 빗물감지센서 측정값 출력
+        print("LCD print" + str(dust_value))
+        LCD.lcd_string(str(dust_value), LCD_LINE_2) # 먼지센서 측정값 출력
+
+        if is_open == 0:
+            print("닫힌 상태")
+        else:
+            print("열린 상태")
+        time.sleep(1)
+        # lcd = Thread(target=lcd, args=(1, result,))
