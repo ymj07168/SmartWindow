@@ -37,12 +37,21 @@ import pyaudio
 from six.moves import queue
 
 import DCmotor
+import sensor
+from time import sleep
+# from threading import Thread, Event
+from multiprocessing import Process, Queue
 
 # Audio recording parameters
 RATE = 16000
 CHUNK = int(RATE / 10)  # 100ms
 
+
+sensor_order = 0
 is_open = 0
+
+
+
 
 class MicrophoneStream(object):
     """Opens a recording stream as a generator yielding the audio chunks."""
@@ -128,7 +137,8 @@ def listen_print_loop(responses):
     final one, print a newline to preserve the finalized transcription.
     """
     num_chars_printed = 0
-    is_open = 0
+
+
     for response in responses:
         if not response.results:
             continue
@@ -141,9 +151,13 @@ def listen_print_loop(responses):
             continue
 
         # Display the transcription of the top alternative.
+        # global transcript
         transcript = result.alternatives[0].transcript
 
-        # Display interim results, but with a carriage return at the end of the
+
+
+        # Display interim res        # global order
+        #         # order = transcriptults, but with a carriage return at the end of the
         # line, so subsequent lines will overwrite them.
         #
         # If the previous result was longer than this one, we need to print
@@ -157,25 +171,44 @@ def listen_print_loop(responses):
             num_chars_printed = len(transcript)
 
         else:
+            global sensor_order
+
+
             print(transcript + overwrite_chars)
-            if "닫아" in transcript:
-                if is_open == 1:      # 열려 있는 상태
-                    DCmotor.init()
-                    DCmotor.forward(1)
-                    is_open = 0
-                    print("닫혔음")
+
+            if "센서 온" in transcript:
+                sensor_order = 1
+                print("센서 자동 제어 ON")
+                th2 = Process(target=sensor.sensor_loop)
+                th2.start()
+
+            if "센서 오프" in transcript:
+                sensor_order = 0
+                print("센서 자동 제어 OFF")
+                th2.terminate()
+
+            if sensor_order == 0:
+                if "닫아" in transcript:
+                    if is_open == 1:      # 열려 있는 상태
+                        DCmotor.init()
+                        DCmotor.forward(1)
+                        is_open = 0
+                        print("닫혔음")
 
 
-            if "열어" in transcript:
-                if is_open == 0:        # 닫혀 있는 상태
-                    DCmotor.init()
-                    DCmotor.reverse(1)
-                    is_open = 1
-                    print("열렸음")
+                if "열어" in transcript:
+                    if is_open == 0:        # 닫혀 있는 상태
+                        DCmotor.init()
+                        DCmotor.reverse(1)
+                        is_open = 1
+                        print("열렸음")
+
+
 
             print("창문 상태: " + str(is_open))
-            # Exit recognition if any of the transcribed phrases could be
-            # one of our keywords.
+
+            # # Exit recognition if any of the transcribed phrases could be
+            # # one of our keywords.
             if re.search(r"\b(exit|quit)\b", transcript, re.I):
                 print("Exiting..")
                 break
@@ -213,5 +246,7 @@ def main():
 
 
 if __name__ == "__main__":
+    # print("스마트 창문 시작!")
     main()
+
 # [END speech_transcribe_streaming_mic]
