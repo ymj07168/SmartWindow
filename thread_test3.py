@@ -66,6 +66,11 @@ if __name__ == "__main__":
 
     while True:
         dust_value = dust()
+
+        lcd(result)                                 # 빗물감지센서 측정값 출력
+        print("LCD print" + str(dust_value))
+        LCD.lcd_string(str(dust_value), LCD_LINE_2) # 먼지센서 측정값 출력
+
         if is_open == 0:                # 창문 닫혀 있는 상태
             if not no_rain.is_active:   # 비가 온 상태
                 result = "rain"
@@ -87,10 +92,6 @@ if __name__ == "__main__":
                     DCmotor.forward(3)  # 창문이 닫힌다.
                     is_open = 0
 
-
-        lcd(result)                                 # 빗물감지센서 측정값 출력
-        print("LCD print" + str(dust_value))
-        LCD.lcd_string(str(dust_value), LCD_LINE_2) # 먼지센서 측정값 출력
 
         if is_open == 0:
             print("닫혔음")
