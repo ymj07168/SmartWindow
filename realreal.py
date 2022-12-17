@@ -41,7 +41,7 @@ import DCmotor
 # import sensor
 from time import sleep
 # from threading import Thread, Event
-from multiprocessing import Process, Queue
+from multiprocessing import Process, Queue,  Pipe
 
 from threading import Thread
 import RPi.GPIO as GPIO
@@ -113,9 +113,11 @@ def dust():
 
 
 
-
 def sensor_loop():
     global is_open
+
+    print("창문 상태 :" + str(is_open)) # prints "[31, None, 'send from parent_conn']"
+
     print("센서 루프 시작")
     no_rain = InputDevice(26)
     result = ""
@@ -134,36 +136,48 @@ def sensor_loop():
     # if "자동" in order:
     while True:
         dust_value = dust()
+
         if is_open == 0:                # 창문 닫혀 있는 상태
             if not no_rain.is_active:   # 비가 온 상태
                 result = "rain"
+                lcd(result)  # 빗물감지센서 측정값 출력
+                print("LCD print" + str(dust_value))
+                LCD.lcd_string(str(dust_value), LCD_LINE_2)  # 먼지센서 측정값 출력
             else:
                 result = "no_rain"      # 비가 오지 않은 상태
+                lcd(result)  # 빗물감지센서 측정값 출력
+                print("LCD print" + str(dust_value))
+                LCD.lcd_string(str(dust_value), LCD_LINE_2)  # 먼지센서 측정값 출력
                 if dust() > 300:     # 미세먼지 많을 때
                     DCmotor.forward(3)  # 창문이 열린다
                     is_open = 1
 
-
         elif is_open == 1:              # 창문 열려 있는 상태
             if not no_rain.is_active:   # 비가 온 상태
                 result = "rain"
+                lcd(result)  # 빗물감지센서 측정값 출력
+                print("LCD print" + str(dust_value))
+                LCD.lcd_string(str(dust_value), LCD_LINE_2)  # 먼지센서 측정값 출력
                 DCmotor.reverse(3)      # 창문이 닫힌다.
                 is_open = 0
             else:
                 result = "no_rain"      # 비가 오지 않은 상태
+                lcd(result)  # 빗물감지센서 측정값 출력
+                print("LCD print" + str(dust_value))
+                LCD.lcd_string(str(dust_value), LCD_LINE_2)  # 먼지센서 측정값 출력
                 if dust() <= 300:    # 미세먼지 적을 때
                     DCmotor.reverse(3)  # 창문이 닫힌다.
                     is_open = 0
-
-
-        lcd(result)                                 # 빗물감지센서 측정값 출력
-        print("LCD print" + str(dust_value))
-        LCD.lcd_string(str(dust_value), LCD_LINE_2) # 먼지센서 측정값 출력
 
         if is_open == 0:
             print("닫힌 상태")
         else:
             print("열린 상태")
+
+
+
+        # conn.send(is_open)
+
         time.sleep(1)
         # lcd = Thread(target=lcd, args=(1, result,))
 
@@ -255,6 +269,7 @@ def listen_print_loop(responses):
     """
     num_chars_printed = 0
 
+    parent_conn, child_conn = Pipe()
 
     for response in responses:
         if not response.results:
@@ -296,7 +311,7 @@ def listen_print_loop(responses):
             if "자동 온" in transcript:
                 sensor_order = 1
                 print("센서 자동 제어 ON")
-                th2 = Process(target=sensor_loop)
+                th2 = Process(target=sensor_loop,)
                 th2.start()
 
             if "자동 오프" in transcript:
