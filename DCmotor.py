@@ -11,22 +11,26 @@ def init():
 
 
 def forward(sec):
-    init()
+    # init()
     gpio.output(BIN1, True)
     gpio.output(BIN2, False)
     time.sleep(sec)
-    gpio.cleanup()
+    gpio.output(BIN1, False)
+    # gpio.cleanup()
 
 
 def reverse(sec):
-    init()
+    # init()
     gpio.output(BIN1, False)
     gpio.output(BIN2, True)
     time.sleep(sec)
-    gpio.cleanup()
+    gpio.output(BIN2, False)
+    # gpio.cleanup()
 
-
-# print("forward")
-# forward(3)
-# print("reverse")
-# reverse(3.5)
+#
+# init()
+# while True:
+#     print("forward")
+#     forward(1)
+#     print("reverse")
+#     reverse(1)
