@@ -1,52 +1,24 @@
-import RPi.GPIO as gpio
-import DCmotor
-from LCD import *
-# import raindrop
+from threading import Thread
 import time
+a = "True"  #global variable
+order = "명령"
+def thread1(threadname):
+    while 1:
+        for i in range(5):
+            print(order)
+        time.sleep(1)
 
-from time import sleep
-from gpiozero import InputDevice
+def thread2(threadname):
+        global order
+        while 1:
+                order = "False"
+                time.sleep(1)
 
-# Define some device parameters
-I2C_ADDR = 0x27     # I2C device address, if any error, change this address to 0x3f
-LCD_WIDTH = 16      # Maximum characters per line
+thread1 = Thread(target=thread1, args=("Thread-1", ))
+thread2 = Thread(target=thread2, args=("Thread-2", ))
 
-# Define some device constants
-LCD_CHR = 1     # Mode - Sending data
-LCD_CMD = 0     # Mode - Sending command
+thread1.start()
+thread2.start()
 
-LCD_LINE_1 = 0x80   # LCD RAM address for the 1st line
-LCD_LINE_2 = 0xC0   # LCD RAM address for the 2nd line
-LCD_LINE_3 = 0x94   # LCD RAM address for the 3rd line
-LCD_LINE_4 = 0xD4   # LCD RAM address for the 4th line
-
-LCD_BACKLIGHT = 0x08  # On
-
-ENABLE = 0b00000100     # Enable bit
-
-# Timing constants
-E_PULSE = 0.0005
-E_DELAY = 0.0005
-
-# Open I2C interface
-# bus = smbus.SMBus(0)  # Rev 1 Pi uses 0
-bus = smbus.SMBus(1)
-
-no_rain = InputDevice(26)
-
-is_open = 0
-
-while True:
-    lcd_init()
-
-    if not no_rain.is_active:
-        print("It's raining - get the washing in!")
-        lcd_string("raining", LCD_LINE_1)
-        DCmotor.forward(3)
-    else:
-        print("NO rain")
-        lcd_string("no rain", LCD_LINE_2)
-        DCmotor.reverse(3)
-
-        is_open = 0
-    sleep(1)
+thread1.join()
+thread2.join()
