@@ -337,6 +337,7 @@ def listen_print_loop(responses):
             if "자동 오프" in transcript:
                 sensor_order = 0
                 th2.raise_exception()
+                th2.join()
                 print("센서 자동 제어 OFF")
                 print("창문 상태 :" + str(is_open))
 
