@@ -28,7 +28,6 @@ Example usage:
 # [START speech_transcribe_streaming_mic]
 from __future__ import division
 
-import multiprocessing
 import re
 import sys
 
@@ -36,8 +35,6 @@ from google.cloud import speech
 
 import pyaudio
 from six.moves import queue
-
-from multiprocessing import Process, Queue,  Pipe
 
 # sensor
 import RPi.GPIO as GPIO
@@ -90,11 +87,9 @@ def lcd(res):
     if res == "rain":
         print("LCD print : rain")
         LCD.lcd_string("Raining", LCD_LINE_1)
-        # LCD.lcd_string("", LCD_LINE_2)
     else:
         print("LCD print : no rain")
         LCD.lcd_string("No Rain", LCD_LINE_1)
-        # LCD.lcd_string("", LCD_LINE_2)
 
 
 def dust():
@@ -102,13 +97,7 @@ def dust():
     dustVal=chan0.value
     GPIO.output(LED_Pin,True)
 
-    # if (dustVal>36.455):
-    # dust_value = ((dustVal/1024)-0.0356)*120000*0.035
     dust_value = (0.17 * (dustVal * (5.0 / 1024)) - 0.1) * 1000
-
-
-    # print("LCD print" + dust_value)
-    # LCD.lcd_string(str(dust_value), LCD_LINE_2)
 
     return dust_value
 
@@ -125,12 +114,9 @@ class thread_with_exception(threading.Thread):
 
         print("센서 루프 시작")
         no_rain = InputDevice(26)
-        result = ""
+        rain_value = ""
         dust_value = ""
         DCmotor.init()
-        # is_open = 0             # 닫힌 상태
-        # print("닫혀있음")
-        # target function of the thread class
 
         print("센서 켜짐")
         if is_open == 0:
@@ -301,7 +287,6 @@ def listen_print_loop(responses):
     """
     num_chars_printed = 0
 
-    parent_conn, child_conn = Pipe()
 
     for response in responses:
         if not response.results:
