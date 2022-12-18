@@ -1,82 +1,46 @@
-import RPi.GPIO as gpio
-from threading import Thread
-import DCmotor
-import dust
-import LCD
-from gpiozero import InputDevice
+# Python program raising 
+# exceptions in a python 
+# thread 
+
+import threading
+import ctypes
 import time
 
-import board
-import busio
-import adafruit_ads1x15.ads1115 as ADS
-from adafruit_ads1x15.analog_in import AnalogIn
 
-# LCD_LINE_1 = 0x80   # LCD RAM address for the 1st line
-# LCD_LINE_2 = 0xC0
-# LCD.lcd_init()
+class thread_with_exception(threading.Thread):
+    def __init__(self, name):
+        threading.Thread.__init__(self)
+        self.name = name
 
-gpio.setmode(gpio.BCM)
-LED_Pin = 17
-gpio.setup(LED_Pin, gpio.OUT)
-# Create the I2C bus
-i2c = busio.I2C(board.SCL, board.SDA)
-# Create the ADC object using the I2C bus
-ads = ADS.ADS1115(i2c)
-# Create single-ended input on channels
-chan0 = AnalogIn(ads, ADS.P0)
-chan1 = AnalogIn(ads, ADS.P1)
-chan2 = AnalogIn(ads, ADS.P2)
-chan3 = AnalogIn(ads, ADS.P3)
+    def run(self):
 
-def motor(no_rain):
-    if not no_rain:
-        print("forward")
-        DCmotor.forward(3)
-    else:
-        print("reverse")
-        DCmotor.reverse(3)
+        # target function of the thread class 
+        try:
+            while True:
+                print('running ' + self.name)
+        finally:
+            print('ended')
 
-def lcd(id, res):
-    LCD_LINE_1 = 0x80  # LCD RAM address for the 1st line
-    LCD_LINE_2 = 0xC0
-    LCD.lcd_init()
+    def get_id(self):
 
-    if res == "rain":
-        print("LCD print : rain")
-        LCD.lcd_string("Raining", LCD_LINE_1)
-    else:
-        print("LCD print : no rain")
-        LCD.lcd_string("No Rain", LCD_LINE_1)
+        # returns id of the respective thread 
+        if hasattr(self, '_thread_id'):
+            return self._thread_id
+        for id, thread in threading._active.items():
+            if thread is self:
+                return id
 
-def dust(id):
-    gpio.output(LED_Pin, False)
-    time.sleep(0.000280)
-    dustVal = chan0.value
-    time.sleep(0.000040)
-    gpio.output(LED_Pin, True)
-    time.sleep(0.009680)
-    time.sleep(1)
-
-    dust_value = ((dustVal / 1024) - 0.0356) * 120000 * 0.035
-    print("DUST print : " + dust_value)
-    LCD.lcd_string(str(dust_value), LCD_LINE_2)
+    def raise_exception(self):
+        thread_id = self.get_id()
+        res = ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id,
+                                                         ctypes.py_object(SystemExit))
+        if res > 1:
+            ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id, 0)
+            print('Exception raise failure')
 
 
-if __name__ == "__main__":
-    no_rain = InputDevice(26)
-    result = ""
-
-    while True:
-        if not no_rain.is_active:
-            result = "no_rain"
-        else:
-            result = "rain"
-
-        lcd = Thread(target=lcd, args=(1, result,))
-        # motor = Thread(target=motor, args=(no_rain.is_active))
-        # dust = Thread(target=dust, args=(2,))
-
-        lcd.start()
-        lcd.join()
-
-
+t1 = thread_with_exception('Thread 1')
+t1.start()
+time.sleep(1)
+t1.raise_exception()
+t1.join() 
