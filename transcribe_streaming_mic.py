@@ -172,6 +172,7 @@ def listen_print_loop(responses):
 
         else:
             global sensor_order
+            global is_open
 
 
             print(transcript + overwrite_chars)
