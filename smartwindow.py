@@ -97,7 +97,7 @@ def dust():
     dustVal=chan0.value
     GPIO.output(LED_Pin,True)
 
-    dust_value = (0.17 * (dustVal * (5.0 / 1024)) - 0.1) * 1000
+    dust_value = (0.17 * (dustVal * (5.0 / 1024)) - 0.1) * 1000 / 10
 
     return dust_value
 
@@ -134,40 +134,40 @@ class thread_with_exception(threading.Thread):
                 else:
                     result = "no rain"
 
-                if 600 < dust_value:
+                if 80 <= dust_value:
                     dust_level = "BAD..T.T"
-                elif 400 <= dust_value and dust_value <600:
+                elif 30 <= dust_value and dust_value < 80:
                     dust_level = "NORMAL"
-                elif dust_value < 400:
+                elif dust_value < 30:
                     dust_level = "GOOD~>.<"
 
                 lcd(result)  # 빗물감지센서 측정값 출력
                 print("LCD print : " + str(dust_value))
                 LCD.lcd_string(dust_level, LCD_LINE_2)  # 먼지센서 측정값 출력
 
-                if is_open == 0:  # 창문 닫혀 있는 상태
-                    if not rain_value:  # 비가 온 상태
+                if is_open == 0:                    # 창문 닫혀 있는 상태
+                    if not rain_value:              # 비가 온 상태
                         print("창문이 닫혀 있는데 비가 옴")
-                    else:               # 비가 오지 않는 상태
-                        if 500 <= dust_value:  # 미세먼지 많을 때 : 나쁨
-                            DCmotor.forward(4.5)  # 창문이 열린다
+                    else:                           # 비가 오지 않는 상태
+                        if 80 <= dust_value:                           # 미세먼지 많을 때 : 나쁨
+                            DCmotor.forward(4.3)    # 창문이 열린다
                             is_open = 1
-                        elif 400 <= dust_value and dust_value < 500:
+                        elif 30 <= dust_value and dust_value < 80:    # 미세먼지 많을 때 : 적정
                             is_open = 0
-                        elif dust_value < 400:  # 미세먼지 적을 때 : 좋음
+                        elif dust_value < 30:                          # 미세먼지 적을 때 : 좋음
                             is_open = 0
 
-                elif is_open == 1:  # 창문 열려 있는 상태
-                    if not no_rain.is_active:  # 비가 온 상태
-                        DCmotor.reverse(5)  # 창문이 닫힌다.
+                elif is_open == 1:                  # 창문 열려 있는 상태
+                    if not no_rain.is_active:       # 비가 온 상태
+                        DCmotor.reverse(4.3)          # 창문이 닫힌다.
                         is_open = 0
-                    else:                      # 비가 오지 않는 상태
-                        if 500 <= dust_value:  # 미세먼지 많을 때 : 나쁨
+                    else:                           # 비가 오지 않는 상태
+                        if 80 <= dust_value:                           # 미세먼지 많을 때 : 나쁨
                             is_open = 1
-                        elif 400 <= dust_value and dust_value < 500:
+                        elif 30 <= dust_value and dust_value < 80:    # 미세먼지 많을 때 : 적정
                             is_open = 1
-                        elif dust_value < 400:  # 미세먼지 적을 때 : 좋음
-                            DCmotor.reverse(5)
+                        elif dust_value < 30:                          # 미세먼지 적을 때 : 좋음
+                            DCmotor.reverse(4.3)      # 창문이 닫힌다
                             is_open = 0
 
                 if is_open == 0:
@@ -325,7 +325,6 @@ def listen_print_loop(responses):
 
             print(transcript + overwrite_chars)
 
-
             if "자동 온" in transcript:
                 sensor_order = 1
                 print("센서 자동 제어 ON")
@@ -345,14 +344,13 @@ def listen_print_loop(responses):
             if sensor_order == 0:
                 if "닫아" in transcript:
                     if is_open == 1:      # 열려 있는 상태
-                        DCmotor.reverse(5)
+                        DCmotor.reverse(4.3)
                         is_open = 0
                         print("닫혔음")
 
-
                 if "열어" in transcript:
                     if is_open == 0:        # 닫혀 있는 상태
-                        DCmotor.forward(4.5)
+                        DCmotor.forward(4.3)
                         is_open = 1
                         print("열렸음")
 
